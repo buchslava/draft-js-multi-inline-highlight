@@ -22,8 +22,10 @@ export interface MultiHighlightStyles {
 
 export interface MultiHighlightRule {
   content: string[];
+  contentCopy?: string[];
   style: string;
   matcher: Function;
+  consumeContent?: boolean;
 }
 
 export interface MultiHighlightConfig {
@@ -35,8 +37,10 @@ export function WordMatcher(
   fragmenter: Fragmenter,
   items: string[],
   style: string,
-  contentBlock: ContentBlock
-) {
+  contentBlock: ContentBlock,
+  consumeContent = false
+): string[] {
+  const consumed: string[] = [];
   const text = contentBlock.getText();
   for (let i = 0; i < items.length; i++) {
     const item = items[i];
@@ -47,16 +51,22 @@ export function WordMatcher(
       const start = matchArr.index;
       const end = start + match.length;
       fragmenter.add(style, [start, end]);
+      if (consumeContent) {
+        consumed.push(item);
+      }
     }
   }
+  return consumed;
 }
 
 export function SentenceMatcher(
   fragmenter: Fragmenter,
   items: string[],
   style: string,
-  contentBlock: ContentBlock
-) {
+  contentBlock: ContentBlock,
+  consumeContent = false
+): string[] {
+  const consumed: string[] = [];
   const text = contentBlock.getText();
   for (let i = 0; i < items.length; i++) {
     const item = items[i];
@@ -66,7 +76,11 @@ export function SentenceMatcher(
       continue;
     }
     fragmenter.add(style, [start, end]);
+    if (consumeContent) {
+      consumed.push(item);
+    }
   }
+  return consumed;
 }
 
 export function MultiHighlightDecorator(config: MultiHighlightConfig) {
@@ -78,11 +92,18 @@ export function MultiHighlightDecorator(config: MultiHighlightConfig) {
     "borderBottomStyle",
     "display",
   ];
+  for (const rule of config.rules) {
+    rule.contentCopy = [...rule.content];
+  }
+
   return new SimpleDecorator(
     function strategy(contentBlock: ContentBlock, callback: Function) {
       const fragments = new Fragmenter(config.styles);
       for (const rule of config.rules) {
-        rule.matcher(fragments, rule.content, rule.style, contentBlock);
+        const toBeConsumed = rule.matcher(fragments, rule.contentCopy, rule.style, contentBlock);
+        if (rule.consumeContent && rule.contentCopy) {
+          rule.contentCopy = rule.contentCopy.filter(e => !toBeConsumed.includes(e));
+        }
       }
       if (fragments.isMultiply()) {
         const ranges = fragments.getDecoratedRanges();
