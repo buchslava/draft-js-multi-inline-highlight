@@ -41,6 +41,7 @@ export function WordMatcher(
   consumeContent = false
 ): number[] {
   const consumed: number[] = [];
+  const passedWordsSet = new Set<string>();
   const text = contentBlock.getText();
   for (let i = 0; i < items.length; i++) {
     const item = items[i];
@@ -51,8 +52,9 @@ export function WordMatcher(
       const start = matchArr.index;
       const end = start + match.length;
       fragmenter.add(style, [start, end]);
-      if (consumeContent) {
+      if (consumeContent && !passedWordsSet.has(item)) {
         consumed.push(i);
+        passedWordsSet.add(item);
       }
     }
   }
@@ -67,6 +69,7 @@ export function SentenceMatcher(
   consumeContent = false
 ): number[] {
   const consumed: number[] = [];
+  const passedWordsSet = new Set<string>();
   const text = contentBlock.getText();
   for (let i = 0; i < items.length; i++) {
     const item = items[i];
@@ -76,8 +79,9 @@ export function SentenceMatcher(
       continue;
     }
     fragmenter.add(style, [start, end]);
-    if (consumeContent) {
+    if (consumeContent && !passedWordsSet.has(item)) {
       consumed.push(i);
+      passedWordsSet.add(item);
     }
   }
   return consumed;

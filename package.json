@@ -1,6 +1,6 @@
 {
   "name": "draft-js-multi-inline-highlight",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "Allows to do multi selections in DraftJS editor via a custom decorator",
   "author": "Vyacheslav Chub <vyacheslav.chub@gmail.com>",
   "bugs": {
