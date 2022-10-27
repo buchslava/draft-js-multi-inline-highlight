@@ -39,8 +39,8 @@ export function WordMatcher(
   style: string,
   contentBlock: ContentBlock,
   consumeContent = false
-): string[] {
-  const consumed: string[] = [];
+): number[] {
+  const consumed: number[] = [];
   const text = contentBlock.getText();
   for (let i = 0; i < items.length; i++) {
     const item = items[i];
@@ -52,7 +52,7 @@ export function WordMatcher(
       const end = start + match.length;
       fragmenter.add(style, [start, end]);
       if (consumeContent) {
-        consumed.push(item);
+        consumed.push(i);
       }
     }
   }
@@ -65,8 +65,8 @@ export function SentenceMatcher(
   style: string,
   contentBlock: ContentBlock,
   consumeContent = false
-): string[] {
-  const consumed: string[] = [];
+): number[] {
+  const consumed: number[] = [];
   const text = contentBlock.getText();
   for (let i = 0; i < items.length; i++) {
     const item = items[i];
@@ -77,7 +77,7 @@ export function SentenceMatcher(
     }
     fragmenter.add(style, [start, end]);
     if (consumeContent) {
-      consumed.push(item);
+      consumed.push(i);
     }
   }
   return consumed;
@@ -100,9 +100,9 @@ export function MultiHighlightDecorator(config: MultiHighlightConfig) {
     function strategy(contentBlock: ContentBlock, callback: Function) {
       const fragments = new Fragmenter(config.styles);
       for (const rule of config.rules) {
-        const toBeConsumed = rule.matcher(fragments, rule.contentCopy, rule.style, contentBlock);
+        const indexesToBeConsumed = rule.matcher(fragments, rule.contentCopy, rule.style, contentBlock);
         if (rule.consumeContent && rule.contentCopy) {
-          rule.contentCopy = rule.contentCopy.filter(e => !toBeConsumed.includes(e));
+          rule.contentCopy = rule.contentCopy.filter((_, i) => !indexesToBeConsumed.includes(i));
         }
       }
       if (fragments.isMultiply()) {
